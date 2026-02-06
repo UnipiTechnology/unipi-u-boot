@@ -1,6 +1,0 @@
-loader/config.txt                usr/lib/unipi-u-boot/
-u-boot/u-boot.bin                usr/lib/unipi-u-boot/
-u-boot/tools/dumpimage           usr/bin
-u-boot/tools/mkenvimage          usr/bin
-u-boot/tools/mkimage             usr/bin
-bootcmd.d                        etc/
