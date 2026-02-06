@@ -65,7 +65,7 @@ index d8a4a81a..6392edc7 100644
 + *     bootflow scan -b mmc0:2
 + * which is required in tryboot bootmeth
 + */
-+#ifdef CONFIG_BOOTMETH_TRYBOOT
++#if ! IS_ENABLED(CONFIG_BOOTMETH_TRYBOOT)
  	if (dev || label)
  		flags |= BOOTFLOWIF_SKIP_GLOBAL;
 +#endif
