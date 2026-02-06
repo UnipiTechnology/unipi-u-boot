@@ -1,0 +1,65 @@
+From da70b3a8e4a92d150cabbd534242a31a29c98b00 Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Tue, 3 Feb 2026 14:01:08 +0100
+Subject: [PATCH 4/7] Add Edge to Kconfig. Add support for udma-ranges as
+ override of dma-ranges.
+
+  Insert Edge into Kconfig infrastructore.
+  Use devicetree parameter udma-range as override of dma-range in
+  U-boot. It is required for usb XHCI on Raspberry Pi CM40.
+---
+ arch/arm/mach-bcm283x/Kconfig | 10 ++++++++++
+ boot/fdt_support.c            |  4 ++++
+ 2 files changed, 14 insertions(+)
+
+diff --git a/arch/arm/mach-bcm283x/Kconfig b/arch/arm/mach-bcm283x/Kconfig
+index d9303e8c..da88c9ae 100644
+--- a/arch/arm/mach-bcm283x/Kconfig
++++ b/arch/arm/mach-bcm283x/Kconfig
+@@ -207,12 +207,21 @@ config TARGET_RPI_ARM64
+ 	  the RPi 4 model B, in AArch64 (64-bit) mode.
+ 	select ARM64
+ 
++config TARGET_UNIPI_EDGE
++	bool "Unipi Edge 64-bit build"
++	help
++	  Support for Unipi Edge board based on Compute Module 4.0
++	  in AArch64 (64-bit) mode.
++	select BCM2711_64B
++
+ endchoice
+ 
+ config SYS_BOARD
++	default "edge" if TARGET_UNIPI_EDGE
+ 	default "rpi"
+ 
+ config SYS_VENDOR
++	default "unipi" if TARGET_UNIPI_EDGE
+ 	default "raspberrypi"
+ 
+ config SYS_SOC
+@@ -225,5 +234,6 @@ config BLOBLIST_SIZE_RELOC
+ 	default 0x20000
+ 
+ source "board/raspberrypi/rpi/Kconfig"
++source "board/unipi/edge/Kconfig"
+ 
+ endmenu
+diff --git a/boot/fdt_support.c b/boot/fdt_support.c
+index 1c215e54..a38aea1a 100644
+--- a/boot/fdt_support.c
++++ b/boot/fdt_support.c
+@@ -1574,6 +1574,10 @@ int fdt_get_dma_range(const void *blob, int node, phys_addr_t *cpu,
+ 
+ 	/* Find the closest dma-ranges property */
+ 	while (parent >= 0) {
++		ranges = fdt_getprop(blob, parent, "udma-ranges", &len);
++		if (ranges && len > 0)
++			break;
++
+ 		ranges = fdt_getprop(blob, parent, "dma-ranges", &len);
+ 
+ 		/* Ignore empty ranges, they imply no translation required */
+-- 
+2.39.5
+

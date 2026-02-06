@@ -1,0 +1,231 @@
+From 614b30ba364130784636daad659f25429cdb7269 Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Tue, 3 Feb 2026 13:58:35 +0100
+Subject: [PATCH 3/7] Add support for RS485 console
+
+---
+ drivers/serial/ns16550.c           |  4 +++-
+ drivers/serial/serial_bcm283x_mu.c |  9 ++++++++-
+ drivers/serial/serial_mxc.c        | 26 ++++++++++++++++++++++----
+ drivers/serial/serial_pl01x.c      | 22 ++++++++++++++++++----
+ 4 files changed, 51 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/serial/ns16550.c b/drivers/serial/ns16550.c
+index 4f7de3ea..39a571f5 100644
+--- a/drivers/serial/ns16550.c
++++ b/drivers/serial/ns16550.c
+@@ -382,8 +382,10 @@ int ns16550_serial_putc(struct udevice *dev, const char ch)
+ 	 * environment upon "printenv". So we can't put this schedule call
+ 	 * in puts().
+ 	 */
+-	if (ch == '\n')
++	if (ch == '\n') {
++		rs485_tx_op_16550(dev, 0);
+ 		schedule();
++	}
+ 
+ 	return 0;
+ }
+diff --git a/drivers/serial/serial_bcm283x_mu.c b/drivers/serial/serial_bcm283x_mu.c
+index 7fa26244..ff7bea2f 100644
+--- a/drivers/serial/serial_bcm283x_mu.c
++++ b/drivers/serial/serial_bcm283x_mu.c
+@@ -50,6 +50,8 @@ struct bcm283x_mu_priv {
+ 	struct bcm283x_mu_regs *regs;
+ };
+ 
++__weak void rs485_bcmtx_op(u32 *cr2, u32 *sr2, int op) {}
++
+ static int bcm283x_mu_serial_getc(struct udevice *dev);
+ 
+ static int bcm283x_mu_serial_setbrg(struct udevice *dev, int baudrate)
+@@ -80,11 +82,13 @@ static int bcm283x_mu_serial_getc(struct udevice *dev)
+ 	struct bcm283x_mu_regs *regs = priv->regs;
+ 	u32 data;
+ 
++	rs485_bcmtx_op(&regs->mcr, &regs->lsr, 0);
+ 	/* Wait until there is data in the FIFO */
+ 	if (!(readl(&regs->lsr) & BCM283X_MU_LSR_RX_READY))
+ 		return -EAGAIN;
+ 
+ 	data = readl(&regs->io);
++	rs485_bcmtx_op(&regs->mcr, &regs->lsr, 2);
+ 
+ 	return (int)data;
+ }
+@@ -94,13 +98,15 @@ static int bcm283x_mu_serial_putc(struct udevice *dev, const char data)
+ 	struct bcm283x_mu_priv *priv = dev_get_priv(dev);
+ 	struct bcm283x_mu_regs *regs = priv->regs;
+ 
++	rs485_bcmtx_op(&regs->mcr, &regs->lsr, 1);
+ 	/* Wait until there is space in the FIFO */
+ 	if (!(readl(&regs->lsr) & BCM283X_MU_LSR_TX_EMPTY))
+ 		return -EAGAIN;
+ 
+ 	/* Send the character */
+ 	writel(data, &regs->io);
+-
++	if (data == '\n')
++		rs485_bcmtx_op(&regs->mcr, &regs->lsr, 0);
+ 	return 0;
+ }
+ 
+@@ -113,6 +119,7 @@ static int bcm283x_mu_serial_pending(struct udevice *dev, bool input)
+ 	lsr = readl(&regs->lsr);
+ 
+ 	if (input) {
++		rs485_bcmtx_op(&regs->mcr, &regs->lsr, 0);
+ 		schedule();
+ 		return (lsr & BCM283X_MU_LSR_RX_READY) ? 1 : 0;
+ 	} else {
+diff --git a/drivers/serial/serial_mxc.c b/drivers/serial/serial_mxc.c
+index 28f4435d..7a1a1953 100644
+--- a/drivers/serial/serial_mxc.c
++++ b/drivers/serial/serial_mxc.c
+@@ -209,6 +209,8 @@ static void _mxc_serial_setbrg(struct mxc_uart *base, unsigned long clk,
+ 	writel(UCR1_UARTEN, &base->cr1);
+ }
+ 
++__weak void rs485_tx_op(u32 *cr2, u32 *sr2, int op) {}
++
+ #if !CONFIG_IS_ENABLED(DM_SERIAL)
+ 
+ #ifndef CFG_MXC_UART_BASE
+@@ -229,9 +231,12 @@ static void mxc_serial_setbrg(void)
+ 
+ static int mxc_serial_getc(void)
+ {
++	int c;
+ 	while (readl(&mxc_base->ts) & UTS_RXEMPTY)
+ 		schedule();
+-	return (readl(&mxc_base->rxd) & URXD_RX_DATA); /* mask out status from upper word */
++	c = (readl(&mxc_base->rxd) & URXD_RX_DATA); /* mask out status from upper word */
++	rs485_tx_op(&mxc_base->cr2, &mxc_base->sr2, 2);
++	return c;
+ }
+ 
+ static void mxc_serial_putc(const char c)
+@@ -240,17 +245,21 @@ static void mxc_serial_putc(const char c)
+ 	if (c == '\n')
+ 		serial_putc('\r');
+ 
++	rs485_tx_op(&mxc_base->cr2, &mxc_base->sr2, 1);
+ 	/* wait for transmitter to be ready */
+ 	while (readl(&mxc_base->ts) & UTS_TXFULL)
+ 		schedule();
+ 
+ 	writel(c, &mxc_base->txd);
++	if (c == '\n')
++		rs485_tx_op(&mxc_base->cr2, &mxc_base->sr2, 0);
+ }
+ 
+ /* Test whether a character is in the RX buffer */
+ static int mxc_serial_tstc(void)
+ {
+ 	/* If receive fifo is empty, return false */
++	rs485_tx_op(&mxc_base->cr2, &mxc_base->sr2, 0);
+ 	if (readl(&mxc_base->ts) & UTS_RXEMPTY)
+ 		return 0;
+ 	return 1;
+@@ -333,11 +342,15 @@ static int mxc_serial_getc(struct udevice *dev)
+ {
+ 	struct mxc_serial_plat *plat = dev_get_plat(dev);
+ 	struct mxc_uart *const uart = plat->reg;
++	int c;
+ 
++	rs485_tx_op(&uart->cr2, &uart->sr2, 0);
+ 	if (readl(&uart->ts) & UTS_RXEMPTY)
+ 		return -EAGAIN;
+ 
+-	return readl(&uart->rxd) & URXD_RX_DATA;
++	c = readl(&uart->rxd) & URXD_RX_DATA;
++	rs485_tx_op(&uart->cr2, &uart->sr2, 2); // udelay(1000)
++	return c;
+ }
+ 
+ static int mxc_serial_putc(struct udevice *dev, const char ch)
+@@ -348,7 +361,10 @@ static int mxc_serial_putc(struct udevice *dev, const char ch)
+ 	if (readl(&uart->ts) & UTS_TXFULL)
+ 		return -EAGAIN;
+ 
++	rs485_tx_op(&uart->cr2, &uart->sr2, 1);
+ 	writel(ch, &uart->txd);
++	if (ch == '\n')
++		rs485_tx_op(&uart->cr2, &uart->sr2, 0);
+ 
+ 	return 0;
+ }
+@@ -359,10 +375,12 @@ static int mxc_serial_pending(struct udevice *dev, bool input)
+ 	struct mxc_uart *const uart = plat->reg;
+ 	uint32_t sr2 = readl(&uart->sr2);
+ 
+-	if (input)
++	if (input) {
++		rs485_tx_op(&uart->cr2, &uart->sr2, 0);
+ 		return sr2 & USR2_RDR ? 1 : 0;
+-	else
++	} else {
+ 		return sr2 & USR2_TXDC ? 0 : 1;
++	}
+ }
+ 
+ static const struct dm_serial_ops mxc_serial_ops = {
+diff --git a/drivers/serial/serial_pl01x.c b/drivers/serial/serial_pl01x.c
+index e6bf0c29..433d8fd7 100644
+--- a/drivers/serial/serial_pl01x.c
++++ b/drivers/serial/serial_pl01x.c
+@@ -35,6 +35,9 @@ static struct pl01x_regs *base_regs __section(".data");
+ 
+ #endif
+ 
++__weak void rs485_tx_op(u32 *cr2, u32 *sr2, int op) {}
++
++
+ static int pl01x_putc(struct pl01x_regs *regs, char c)
+ {
+ 	/* Wait until there is space in the FIFO */
+@@ -336,16 +339,26 @@ int pl01x_serial_probe(struct udevice *dev)
+ 
+ int pl01x_serial_getc(struct udevice *dev)
+ {
++	int c;
+ 	struct pl01x_priv *priv = dev_get_priv(dev);
+ 
+-	return pl01x_getc(priv->regs);
++	rs485_tx_op(&priv->regs->pl011_cr, &priv->regs->fr, 0);
++
++	c = pl01x_getc(priv->regs);
++	rs485_tx_op(&priv->regs->pl011_cr, &priv->regs->fr, 2); // udelay(1000)
++	return c;
+ }
+ 
+ int pl01x_serial_putc(struct udevice *dev, const char ch)
+ {
+ 	struct pl01x_priv *priv = dev_get_priv(dev);
++	int ret;
+ 
+-	return pl01x_putc(priv->regs, ch);
++	rs485_tx_op(&priv->regs->pl011_cr, &priv->regs->fr, 1);
++	ret = pl01x_putc(priv->regs, ch);
++	if (ch == '\n')
++		rs485_tx_op(&priv->regs->pl011_cr, &priv->regs->fr, 0);
++	return ret;
+ }
+ 
+ int pl01x_serial_pending(struct udevice *dev, bool input)
+@@ -353,9 +366,10 @@ int pl01x_serial_pending(struct udevice *dev, bool input)
+ 	struct pl01x_priv *priv = dev_get_priv(dev);
+ 	unsigned int fr = readl(&priv->regs->fr);
+ 
+-	if (input)
++	if (input) {
++		rs485_tx_op(&priv->regs->pl011_cr, &priv->regs->fr, 0);
+ 		return pl01x_tstc(priv->regs);
+-	else
++	} else
+ 		return fr & UART_PL01x_FR_TXFE ? 0 : 1;
+ }
+ 
+-- 
+2.39.5
+

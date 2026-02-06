@@ -1,0 +1,9 @@
+
+Created from u-boot source dir by
+
+    git format-patch origin/xxxx
+
+Apply on new repo with 
+    git apply --check [file]
+
+    git am Maildir

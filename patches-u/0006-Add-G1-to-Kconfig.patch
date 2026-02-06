@@ -1,0 +1,77 @@
+From e76e1ed863e315331b7d3114c8a8342f9189ebef Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Tue, 3 Feb 2026 14:07:04 +0100
+Subject: [PATCH 6/7] Add G1 to Kconfig Fix setting MAC address of eth1.
+ Prepare serial console
+
+---
+ arch/arm/mach-rockchip/board.c         | 13 +++++++++----
+ arch/arm/mach-rockchip/rk3328/Kconfig  |  7 +++++++
+ arch/arm/mach-rockchip/rk3328/rk3328.c |  2 +-
+ 3 files changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-rockchip/board.c b/arch/arm/mach-rockchip/board.c
+index 2e6bb38b..c358fa0a 100644
+--- a/arch/arm/mach-rockchip/board.c
++++ b/arch/arm/mach-rockchip/board.c
+@@ -352,11 +352,16 @@ int rockchip_setup_macaddr(void)
+ 	/* Make this a valid MAC address and set it */
+ 	mac_addr[0] &= 0xfe;  /* clear multicast bit */
+ 	mac_addr[0] |= 0x02;  /* set local assignment bit (IEEE802) */
+-	eth_env_set_enetaddr("ethaddr", mac_addr);
+ 
+-	/* Make a valid MAC address for ethernet1 */
+-	mac_addr[5] ^= 0x01;
+-	eth_env_set_enetaddr("eth1addr", mac_addr);
++	if (mac_addr[5] >= 255) {
++		eth_env_set_enetaddr("ethaddr", mac_addr);
++		mac_addr[5]--;
++		eth_env_set_enetaddr("eth1addr", mac_addr);
++	} else {
++		eth_env_set_enetaddr("eth1addr", mac_addr);
++		mac_addr[5]++;
++		eth_env_set_enetaddr("ethaddr", mac_addr);
++	}
+ #endif
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-rockchip/rk3328/Kconfig b/arch/arm/mach-rockchip/rk3328/Kconfig
+index ec1dae8d..0d455afb 100644
+--- a/arch/arm/mach-rockchip/rk3328/Kconfig
++++ b/arch/arm/mach-rockchip/rk3328/Kconfig
+@@ -10,6 +10,12 @@ config TARGET_EVB_RK3328
+ 	  with full function and phisical connectors support like
+ 	  usb2.0 host ports, LVDS, JTAG, MAC, SDcard, HDMI, USB-2-serial...
+ 
++config TARGET_UNIPI_G1
++	bool "UniPi G1 gateway"
++	help
++	  UniPi G1 if Rockchip rk3328 based gateway with dual Ethernet,
++	  dual RS485 port and USB-3 port
++
+ endchoice
+ 
+ config ROCKCHIP_BOOT_MODE_REG
+@@ -34,5 +40,6 @@ config TPL_SYS_MALLOC_F_LEN
+ 	default 0x800
+ 
+ source "board/rockchip/evb_rk3328/Kconfig"
++source "board/unipi/unipi_g1/Kconfig"
+ 
+ endif
+diff --git a/arch/arm/mach-rockchip/rk3328/rk3328.c b/arch/arm/mach-rockchip/rk3328/rk3328.c
+index 12ad17d9..5f46b1b5 100644
+--- a/arch/arm/mach-rockchip/rk3328/rk3328.c
++++ b/arch/arm/mach-rockchip/rk3328/rk3328.c
+@@ -92,7 +92,7 @@ int arch_cpu_init(void)
+ 	return 0;
+ }
+ 
+-void board_debug_uart_init(void)
++__weak void board_debug_uart_init(void)
+ {
+ 	struct rk3328_grf_regs * const grf = (void *)GRF_BASE;
+ 	struct rk_uart * const uart = (void *)UART2_BASE;
+-- 
+2.39.5
+

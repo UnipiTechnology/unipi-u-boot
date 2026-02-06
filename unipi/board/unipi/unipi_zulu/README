@@ -1,0 +1,23 @@
+
+- k vytvoreni image je potreba mit v build adresari soubory nebo symlinky
+  s ddr daty (lpddr4*) a ATF (bl31.bin)
+
+
+- pro podepsani image je potreba CST verze 3.3.0 nebo 4.0.0
+  verze 3.3.1 nainstalovana z Debian repa segfaultuje
+
+- zatim nevymysleno vzdalene podepisovani
+  bud napatchovat pythoni binarky tools/binman/btool/cst.py
+  nebo nafejkovat binarku cst, ktera se vola 
+    cst -i ??csf-config-txt?? -o ??csf-output-blob??
+  a pouziva jeste soubor ??csf-input-data???
+
+- cesty ke klicum je nutne zadat formou env promennych napr.
+     CSF_KEY=CSF1_1_sha256_2048_65537_v3_usr_crt.pem\
+     IMG_KEY=IMG1_1_sha256_2048_65537_v3_usr_crt.pem\
+     SRK_KEY=SRK1_sha256_2048_65537_v3_ca_crt.pem\
+     CROSS_COMPILE=aarch64-linux-gnu- ARCH=arm make -j 12
+
+  pozor, musi byt k dispozici i soubory *_1_sha256_2048_65537_v3_usr_key.pem
+  a soubor s hesly key_pass.txt
+

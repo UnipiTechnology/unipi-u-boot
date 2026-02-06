@@ -1,0 +1,7 @@
+UNIPI ZULU BOARD
+M:	Miroslav Ondra <ondra@faster.cz>
+S:	Maintained
+F:	board/unipi/unipi_zulu/
+F:	include/configs/unipi_zulu.h
+F:	configs/unipi_zulu_spi_defconfig
+F:	configs/unipi_zulu_defconfig

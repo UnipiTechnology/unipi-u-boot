@@ -1,0 +1,25 @@
+From 2b597b855f1b02393626386de02917cbd997c2c9 Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Mon, 15 Feb 2021 19:38:30 +0100
+Subject: [PATCH] Change uart speed to 115200
+
+---
+ plat/rockchip/rk3328/rk3328_def.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/plat/rockchip/rk3328/rk3328_def.h b/plat/rockchip/rk3328/rk3328_def.h
+index 60055e8..5113a77 100644
+--- a/plat/rockchip/rk3328/rk3328_def.h
++++ b/plat/rockchip/rk3328/rk3328_def.h
+@@ -103,7 +103,7 @@
+ /**************************************************************************
+  * UART related constants
+  **************************************************************************/
+-#define RK3328_BAUDRATE	1500000
++#define RK3328_BAUDRATE	115200
+ #define RK3328_UART_CLOCK	24000000
+ 
+ /******************************************************************************
+-- 
+2.30.2
+

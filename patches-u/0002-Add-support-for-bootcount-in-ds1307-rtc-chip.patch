@@ -1,0 +1,97 @@
+From 75ca8e7a599136a8f2d660bb5d3a854fab707cda Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Tue, 3 Feb 2026 13:48:41 +0100
+Subject: [PATCH 2/7] Add support for bootcount in ds1307 rtc chip Add driver
+ for i2c-bcm2835
+
+---
+ drivers/i2c/Kconfig          |  6 ++++++
+ drivers/i2c/Makefile         |  1 +
+ drivers/rtc/ds1307.c         | 23 +++++++++++++++++++++++
+ drivers/usb/host/xhci-brcm.c |  1 +
+ 4 files changed, 31 insertions(+)
+
+diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
+index 55465dc1..e09cae58 100644
+--- a/drivers/i2c/Kconfig
++++ b/drivers/i2c/Kconfig
+@@ -267,6 +267,12 @@ config SYS_I2C_ASPEED
+ 	  Only single master mode is supported and only byte-by-byte
+ 	  synchronous reads and writes are supported, no Pool Buffers or DMA.
+ 
++config SYS_I2C_BCM2835
++	bool "Broadcom 2835 I2C driver"
++	depends on DM_I2C
++	help
++	  Add support for the Broadcom 2835 I2C driver.
++
+ config SYS_I2C_INTEL
+ 	bool "Intel I2C/SMBUS driver"
+ 	depends on DM_I2C
+diff --git a/drivers/i2c/Makefile b/drivers/i2c/Makefile
+index 5fe30d0d..5b405c53 100644
+--- a/drivers/i2c/Makefile
++++ b/drivers/i2c/Makefile
+@@ -58,5 +58,6 @@ obj-$(CONFIG_SYS_I2C_UNIPHIER_F) += i2c-uniphier-f.o
+ obj-$(CONFIG_SYS_I2C_VERSATILE) += i2c-versatile.o
+ obj-$(CONFIG_SYS_I2C_XILINX_XIIC) += xilinx_xiic.o
+ obj-$(CONFIG_TEGRA186_BPMP_I2C) += tegra186_bpmp_i2c.o
++obj-$(CONFIG_SYS_I2C_BCM2835) += i2c-bcm2835.o
+ 
+ obj-$(CONFIG_$(PHASE_)I2C_MUX) += muxes/
+diff --git a/drivers/rtc/ds1307.c b/drivers/rtc/ds1307.c
+index 04921099..76a2a139 100644
+--- a/drivers/rtc/ds1307.c
++++ b/drivers/rtc/ds1307.c
+@@ -219,6 +219,27 @@ static void rtc_write (uchar reg, uchar val)
+ #endif /* !CONFIG_DM_RTC */
+ 
+ #ifdef CONFIG_DM_RTC
++
++static int ds1307_rtc_read8(struct udevice *dev, unsigned int reg)
++{
++	int ret;
++	u8 buf;
++
++	ret = dm_i2c_read(dev, reg, &buf, sizeof(buf));
++
++	if (ret < 0)
++		return ret;
++
++	return buf;
++}
++
++static int ds1307_rtc_write8(struct udevice *dev, unsigned int reg, int val)
++{
++	u8 buf = (u8)val;
++	return dm_i2c_write(dev, reg, &buf, sizeof(buf));
++}
++
++
+ static int ds1307_rtc_set(struct udevice *dev, const struct rtc_time *tm)
+ {
+ 	int ret;
+@@ -345,6 +366,8 @@ static int ds1307_probe(struct udevice *dev)
+ static const struct rtc_ops ds1307_rtc_ops = {
+ 	.get = ds1307_rtc_get,
+ 	.set = ds1307_rtc_set,
++	.read8 = ds1307_rtc_read8,
++	.write8 = ds1307_rtc_write8,
+ 	.reset = ds1307_rtc_reset,
+ };
+ 
+diff --git a/drivers/usb/host/xhci-brcm.c b/drivers/usb/host/xhci-brcm.c
+index 595839fa..6044a5c8 100644
+--- a/drivers/usb/host/xhci-brcm.c
++++ b/drivers/usb/host/xhci-brcm.c
+@@ -81,6 +81,7 @@ static int xhci_brcm_deregister(struct udevice *dev)
+ }
+ 
+ static const struct udevice_id xhci_brcm_ids[] = {
++	{ .compatible = "generic-xhci" },
+ 	{ .compatible = "brcm,generic-xhci" },
+ 	{ }
+ };
+-- 
+2.39.5
+

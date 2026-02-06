@@ -1,0 +1,18 @@
+if TARGET_UNIPI_G1
+
+config ID_EEPROM
+	default 1
+
+config SYS_BOARD
+	default "unipi_g1"
+
+config SYS_VENDOR
+	default "unipi"
+
+config SYS_CONFIG_NAME
+	default "unipi_g1"
+
+config BOARD_SPECIFIC_OPTIONS # dummy
+	def_bool y
+
+endif

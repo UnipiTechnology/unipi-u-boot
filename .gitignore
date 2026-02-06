@@ -1,0 +1,5 @@
+# Debian temps
+debian/changelog
+debian/unipi-u-boot.debhelper.log
+debian/unipi-u-boot/*
+firmware/

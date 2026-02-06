@@ -1,0 +1,7 @@
+UNIPI-G1
+M:      Miroslv Ondra <ondra@faster.cz>
+S:      Maintained
+F:      board/unipi/unipi_g1
+F:      include/configs/unipi_g1.h
+F:      configs/unipi_g1_defconfig
+

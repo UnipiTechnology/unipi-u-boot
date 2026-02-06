@@ -1,0 +1,21 @@
+if TARGET_UNIPI_ZULU
+
+config SYS_BOARD
+	default "unipi_zulu"
+
+config SYS_VENDOR
+	default "unipi"
+
+config SYS_CONFIG_NAME
+	default "unipi_zulu"
+
+config ID_EEPROM
+	bool "Build support for Unipi ID eprom"
+	default y
+
+config OF_BOARD_SETUP
+	default 1
+
+#source "board/freescale/common/Kconfig"
+
+endif

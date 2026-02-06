@@ -1,0 +1,40 @@
+From 41e5b02da877976a2d62c21773c158c54fc4f0a2 Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Tue, 3 Feb 2026 14:06:16 +0100
+Subject: [PATCH 5/7] Add Zulu to Kconfig
+
+---
+ arch/arm/mach-imx/imx8m/Kconfig | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm/mach-imx/imx8m/Kconfig b/arch/arm/mach-imx/imx8m/Kconfig
+index 030ed2f0..1934bf32 100644
+--- a/arch/arm/mach-imx/imx8m/Kconfig
++++ b/arch/arm/mach-imx/imx8m/Kconfig
+@@ -413,6 +413,16 @@ config TARGET_LIBREM5
+ 	select SUPPORT_SPL
+ 	select IMX8M_LPDDR4
+ 
++config TARGET_UNIPI_ZULU
++	bool "Support UniPi Zulu board"
++	select IMX8MM
++	select SUPPORT_SPL
++	select IMX8M_LPDDR4
++	select FSL_CAAM
++	select ARCH_MISC_INIT
++	select OF_BOARD_SETUP
++	select SPL_CRYPTO if SPL
++
+ endchoice
+ 
+ source "board/advantech/imx8mp_rsb3720a1/Kconfig"
+@@ -450,5 +460,6 @@ source "board/variscite/imx8mn_var_som/Kconfig"
+ source "board/toradex/smarc-imx8mp/Kconfig"
+ source "board/toradex/verdin-imx8mm/Kconfig"
+ source "board/toradex/verdin-imx8mp/Kconfig"
++source "board/unipi/unipi_zulu/Kconfig"
+ 
+ endif
+-- 
+2.39.5
+

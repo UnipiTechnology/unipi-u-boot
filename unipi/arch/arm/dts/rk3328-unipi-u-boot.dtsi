@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * (C) Copyright 2016-2019 Rockchip Electronics Co., Ltd
+ * (C) Copyright 2020 Radxa
+ * (C) Copyright 2023 Unipi Technology s.r.o.
+ */
+
+#include "rk3328-u-boot.dtsi"
+#include "rk3328-sdram-ddr3-666.dtsi"
+#include "rk3328-sdram-ddr4-666a.dtsi"
+
+/ {
+	chosen {
+		u-boot,spl-boot-order = "same-as-spl", &sdmmc, &emmc;
+	};
+
+	smbios {
+		compatible = "u-boot,sysinfo-smbios";
+
+		smbios {
+			system {
+				manufacturer = "Unipi";
+				product = "G1x/RK3328";
+			};
+
+			baseboard {
+				manufacturer = "Unipi";
+				product = "G1x/RK3328";
+			};
+
+			chassis {
+				manufacturer = "Unipi";
+				product = "G1x/RK3328";
+			};
+		};
+	};
+};
+
+&gpio0 {
+	u-boot,dm-spl;
+};
+
+&pinctrl {
+	u-boot,dm-spl;
+};
+
+&sdmmc0m1_pin {
+	u-boot,dm-spl;
+};
+
+&pcfg_pull_up_4ma {
+	u-boot,dm-spl;
+};
+
+&usbdrd3 {
+	vbus-supply = <&vcc_host_5v>;
+	status = "okay";
+};
+
+/* Need this and all the pinctrl/gpio stuff above to set pinmux */
+&vcc_sd {
+	u-boot,dm-spl;
+};
+

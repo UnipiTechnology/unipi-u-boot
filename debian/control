@@ -1,0 +1,21 @@
+Source: unipi-u-boot
+Section: kernels
+Priority: optional
+Maintainer: Miroslav Ondra <ondra@faster.cz>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 4.1.3
+Homepage: https://www.unipi.technology/
+Vcs-Browser: https://git.unipi.technology/UniPi/rpi-u-boot
+Vcs-Git: https://git.unipi.technology/UniPi/rpi-u-boot.git
+
+Package: unipi-u-boot
+Architecture: arm64
+Depends: ${shlibs:Depends}, ${misc:Depends}, make, raspi-firmware
+Provides: u-boot-tools
+Conflicts: u-boot-tools
+Replaces: u-boot-tools
+Description: U-boot bootloader for Unipi Neuron PLC
+ This package includes boot loader for Unipi Neuron PLC based 
+ Raspberry Pi boards/modules. It replaces raspberrypi-bootloader
+ package. Contains u-boot binaries and configuration templates for boot 
+ scripts.

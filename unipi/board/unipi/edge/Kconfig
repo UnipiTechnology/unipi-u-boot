@@ -1,0 +1,16 @@
+if SYS_BOARD = "edge"
+
+config ID_EEPROM
+	default 1
+
+config OF_SYSTEM_SETUP
+	default 1
+
+config RPI_EFI_NR_SPIN_PAGES
+	int "Spin table page count"
+	default 1
+	help
+	  Number of pages to reserve starting at page 0 for spin tables in the EFI
+	  memory map
+
+endif

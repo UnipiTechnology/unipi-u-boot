@@ -1,0 +1,77 @@
+From 35c85023b0ff73b7adb4b6687b1a1b8ba3759981 Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Tue, 3 Feb 2026 13:46:54 +0100
+Subject: [PATCH 1/7] Add new boot methods - altboot and tryboot
+
+---
+ boot/Kconfig    | 20 ++++++++++++++++++++
+ boot/Makefile   |  2 ++
+ boot/bootflow.c |  6 ++++++
+ 3 files changed, 28 insertions(+)
+
+diff --git a/boot/Kconfig b/boot/Kconfig
+index 245e120c..25a25c81 100644
+--- a/boot/Kconfig
++++ b/boot/Kconfig
+@@ -1026,6 +1026,26 @@ endif  # SPL
+ 
+ endif  # UPL
+ 
++if BOOTMETH_SCRIPT
++
++config BOOTMETH_TRYBOOT
++	bool "Bootdev support for one-shot boot from other location"
++	default y if BOOTMETH_SCRIPT
++	help
++	  Enables support for one-shot boot with support bootcount.
++	  Load /boot/tryboot file containing label of next bootdev (mmc0:3)
++	  and try to boot from this device. If boot/tryboot file is not
++	  found load and start /boot/recover.scr
++	  Before running an action bootcount is reset to disable repeated tryboot.
++
++config BOOTMETH_ALTBOOT
++	bool "Bootdev support for loading boot script from /boot/altboot directory"
++	default y if BOOTMETH_SCRIPT
++	help
++	  Enable support for changing boot directory to /boot/altboot.
++
++
++endif # BOOTMETH_SCRIPT
+ endif # BOOTSTD
+ 
+ config LEGACY_IMAGE_FORMAT
+diff --git a/boot/Makefile b/boot/Makefile
+index 7fb56e7e..511573c0 100644
+--- a/boot/Makefile
++++ b/boot/Makefile
+@@ -36,6 +36,8 @@ obj-$(CONFIG_$(PHASE_)BOOTMETH_QFW) += bootmeth_qfw.o
+ obj-$(CONFIG_$(PHASE_)BOOTMETH_RAUC) += bootmeth_rauc.o
+ obj-$(CONFIG_$(PHASE_)BOOTMETH_SANDBOX) += bootmeth_sandbox.o
+ obj-$(CONFIG_$(PHASE_)BOOTMETH_SCRIPT) += bootmeth_script.o
++obj-$(CONFIG_$(PHASE_)BOOTMETH_TRYBOOT) += bootmeth_tryboot.o
++obj-$(CONFIG_$(PHASE_)BOOTMETH_ALTBOOT) += bootmeth_altboot.o
+ obj-$(CONFIG_$(PHASE_)CEDIT) += cedit.o
+ obj-$(CONFIG_$(PHASE_)BOOTMETH_EFI_BOOTMGR) += bootmeth_efi_mgr.o
+ 
+diff --git a/boot/bootflow.c b/boot/bootflow.c
+index d8a4a81a..6392edc7 100644
+--- a/boot/bootflow.c
++++ b/boot/bootflow.c
+@@ -543,8 +543,14 @@ int bootflow_scan_first(struct udevice *dev, const char *label,
+ {
+ 	int ret;
+ 
++/* Setting this flag effectively disables using command
++ *     bootflow scan -b mmc0:2
++ * which is required in tryboot bootmeth
++ */
++#ifdef CONFIG_BOOTMETH_TRYBOOT
+ 	if (dev || label)
+ 		flags |= BOOTFLOWIF_SKIP_GLOBAL;
++#endif
+ 	bootflow_iter_init(iter, flags);
+ 
+ 	/*
+-- 
+2.39.5
+
