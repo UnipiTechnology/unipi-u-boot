@@ -22,7 +22,7 @@ patch_source()
 }
 
 if [ "$1" != "-na" ]; then
-    wget "https://github.com/ARM-software/arm-trusted-firmware/archive/refs/tags/${ATF_TAG}.tar.gz" -O- | tar xz
+    wget -q "https://github.com/ARM-software/arm-trusted-firmware/archive/refs/tags/${ATF_TAG}.tar.gz" -O- | tar xz
     mv arm-trusted-firmware-* atf
     (
         cd atf
@@ -37,7 +37,7 @@ else
 fi
 
 if [ "$1" != "-nu" ]; then
-    wget "https://source.denx.de/u-boot/u-boot/-/archive/${UBOOT_TAG}/u-boot-${UBOOT_TAG}.tar.gz" -O- | tar xz
+    wget -q "https://source.denx.de/u-boot/u-boot/-/archive/${UBOOT_TAG}/u-boot-${UBOOT_TAG}.tar.gz" -O- | tar xz
 
     mv u-boot-${UBOOT_TAG} u-boot
     (
@@ -61,7 +61,7 @@ if [ "$1" != "-nd" ]; then
     lpddr4_pmu_train_2d_dmem.bin"
 
     FW="firmware-imx-$DDR_TAG-$IMX_DDR_ABBREV"
-    wget https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/$FW.bin -O fwrun
+    wget -q https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/$FW.bin -O fwrun
 
     if [ "$1" = "build" ]; then 
         sh fwrun --auto-accept --force
