@@ -21,10 +21,10 @@
 #include "uniee.h"
 #include "uniee_values.h"
 #include "unipi_eprom.h"
+#include "unipi_system.h"
 
 int mac_read_from_eeprom(void);
 void usb_hub_reset_devices(struct usb_hub_device *hub, int port);
-int ft_unipi_board_setup(void *blob, struct bd_info *bd);
 
 /* define weak functions - can be redifned in board file */
 __weak int check_button_status(int button_type) {return 0;}

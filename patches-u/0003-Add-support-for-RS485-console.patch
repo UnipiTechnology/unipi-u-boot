@@ -1,20 +1,38 @@
-From 614b30ba364130784636daad659f25429cdb7269 Mon Sep 17 00:00:00 2001
+From cc1a70eddc546ae7a2100d308513810f21a6bd03 Mon Sep 17 00:00:00 2001
 From: Miroslav Ondra <ondra@faster.cz>
-Date: Tue, 3 Feb 2026 13:58:35 +0100
-Subject: [PATCH 3/7] Add support for RS485 console
+Date: Mon, 16 Feb 2026 19:53:55 +0100
+Subject: [PATCH] Add support for RS485 console
 
 ---
- drivers/serial/ns16550.c           |  4 +++-
+ drivers/serial/ns16550.c           | 18 ++++++++++++++----
  drivers/serial/serial_bcm283x_mu.c |  9 ++++++++-
  drivers/serial/serial_mxc.c        | 26 ++++++++++++++++++++++----
  drivers/serial/serial_pl01x.c      | 22 ++++++++++++++++++----
- 4 files changed, 51 insertions(+), 10 deletions(-)
+ 4 files changed, 62 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/serial/ns16550.c b/drivers/serial/ns16550.c
-index 4f7de3ea..39a571f5 100644
+index 4f7de3ea..6c77cc0b 100644
 --- a/drivers/serial/ns16550.c
 +++ b/drivers/serial/ns16550.c
-@@ -382,8 +382,10 @@ int ns16550_serial_putc(struct udevice *dev, const char ch)
+@@ -368,12 +368,17 @@ DEBUG_UART_FUNCS
+ #endif
+ 
+ #if CONFIG_IS_ENABLED(DM_SERIAL)
++__weak void rs485_tx_op_16550(struct udevice *dev, int op)
++{
++}
++
+ int ns16550_serial_putc(struct udevice *dev, const char ch)
+ {
+ 	struct ns16550 *const com_port = dev_get_priv(dev);
+ 
+ 	if (!(serial_in(&com_port->lsr) & UART_LSR_THRE))
+ 		return -EAGAIN;
++	rs485_tx_op_16550(dev, 1);
+ 	serial_out(ch, &com_port->thr);
+ 
+ 	/*
+@@ -382,8 +387,10 @@ int ns16550_serial_putc(struct udevice *dev, const char ch)
  	 * environment upon "printenv". So we can't put this schedule call
  	 * in puts().
  	 */
@@ -26,6 +44,30 @@ index 4f7de3ea..39a571f5 100644
  
  	return 0;
  }
+@@ -392,10 +399,12 @@ int ns16550_serial_pending(struct udevice *dev, bool input)
+ {
+ 	struct ns16550 *const com_port = dev_get_priv(dev);
+ 
+-	if (input)
++	if (input) {
++		rs485_tx_op_16550(dev, 0);
+ 		return (serial_in(&com_port->lsr) & UART_LSR_DR) ? 1 : 0;
+-	else
+-		return (serial_in(&com_port->lsr) & UART_LSR_THRE) ? 0 : 1;
++	} else
++		return ((serial_in(&com_port->lsr)&(UART_LSR_TEMT | UART_LSR_THRE)) ==
++				(UART_LSR_TEMT | UART_LSR_THRE)) ? 0 : 1;
+ }
+ 
+ int ns16550_serial_getc(struct udevice *dev)
+@@ -406,6 +415,7 @@ int ns16550_serial_getc(struct udevice *dev)
+ 		return -EAGAIN;
+ 
+ 	return serial_in(&com_port->rbr);
++	rs485_tx_op_16550(dev, 2);
+ }
+ 
+ int ns16550_serial_setbrg(struct udevice *dev, int baudrate)
 diff --git a/drivers/serial/serial_bcm283x_mu.c b/drivers/serial/serial_bcm283x_mu.c
 index 7fa26244..ff7bea2f 100644
 --- a/drivers/serial/serial_bcm283x_mu.c

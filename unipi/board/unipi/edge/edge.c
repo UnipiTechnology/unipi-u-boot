@@ -15,16 +15,15 @@
 #include <linux/delay.h>
 
 #include "../common/uniee_values.h"
+#include "../common/unipi_system.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
 #define EDGE_BUTTON   25
 #define EDGE_RTS      17
 
-int check_button_status(int button_type);
 void rs485_tx_op(u32 *cr2, u32 *sr2, int op);
 void rs485_bcmtx_op(u32 *cr2, u32 *sr2, int op);
-void usb_hub_reset_devices(struct usb_hub_device *hub, int port);
 int board_late_init(void);
 int ft_system_setup(void *blob, struct bd_info  *bd);
 

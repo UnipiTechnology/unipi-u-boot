@@ -21,7 +21,7 @@
 #define GPIO2_BASE		0xFF230000
 
 
-#ifdef CONFIG_SPL_BUILD
+#ifdef CONFIG_XPL_BUILD
 
 static void tpl_gpio_set_input(const struct rockchip_gpio_regs * gpioreg, int gpio)
 {
@@ -100,7 +100,7 @@ void board_debug_uart_init(void)
 		IOMUX_SEL_UART2_M1,
 	};
 
-#ifdef CONFIG_SPL_BUILD
+#ifdef CONFIG_XPL_BUILD
 	struct rockchip_gpio_regs * const gpio2 = (void *)GPIO2_BASE;
 
 	/* set GPIO2-C2 to gpio mode, output value 0 (RTS off)*/
@@ -141,7 +141,7 @@ void board_debug_uart_init(void)
 	writel(0x1, &uart->sfe);
 
 
-#ifdef CONFIG_SPL_BUILD
+#ifdef CONFIG_XPL_BUILD
 	/* check switch */
 	tpl_gpio_read(gpio2, GPIO(BANK_C, 5));
 	if (tpl_gpio_read(gpio2, GPIO(BANK_C, 5))) {

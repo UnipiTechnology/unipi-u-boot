@@ -53,7 +53,7 @@ else
     shift
 fi
 
-if [ "$1" != "-nd" ]; then
+if [ "$1" != "-nd" ] && [ "$2" != "-nd" ]; then
     DDR_FIRMWARE_NAME=" \
     lpddr4_pmu_train_1d_imem.bin \
     lpddr4_pmu_train_1d_dmem.bin \

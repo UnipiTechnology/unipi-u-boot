@@ -9,8 +9,8 @@
  *      Author: martyy
  */
 
-#ifndef UNIEE_H_
-#define UNIEE_H_
+#ifndef __UNIEE_H__
+#define __UNIEE_H__
 
 #include "uniee_values.h"
 
@@ -183,4 +183,4 @@ static inline void uniee_fix_legacy_content(uint8_t* buff, int size, uniee_descr
 }
 
 
-#endif /* UNIEE_H_ */
+#endif /* __UNIEE_H__ */

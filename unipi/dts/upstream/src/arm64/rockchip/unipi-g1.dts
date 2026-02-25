@@ -1,0 +1,256 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * (C) Copyright 2026 Unipi Technology s.r.o.
+ *
+ * Based on ./rk3328-rock-pi-e.dts
+ */
+
+/dts-v1/;
+#include "rk3328-rock-pi-e.dts"
+
+/ {
+	model = "UniPi G1xx";
+	compatible = "unipi,g1", "rockchip,rk3328";
+
+	aliases {
+		ethernet0 = &gmac2phy;
+		ethernet1 = &gmac2io;
+	};
+
+	/delete-node/ chosen;
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		user-led@1 {
+			label = "unipi-sysled-x3";
+			color = <LED_COLOR_ID_GREEN>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&unipi_led1>;
+			gpios = <&gpio2 RK_PC6 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+			//ttyS2-rx
+			linux,default-trigger = "tty";
+		};
+
+		user-led@2 {
+			label = "unipi-sysled-x2";
+			color = <LED_COLOR_ID_GREEN>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&unipi_led2>;
+			gpios = <&gpio2 RK_PC3 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+			// ttyS2-tx
+			linux,default-trigger = "tty";
+		};
+
+		user-led@3 {
+			label = "unipi-sysled-x5";
+			color = <LED_COLOR_ID_GREEN>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&unipi_led3>;
+			gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+			// ttyS1-rx
+			linux,default-trigger = "tty";
+		};
+
+		user-led@4 {
+			label = "unipi-sysled-x4";
+			color = <LED_COLOR_ID_GREEN>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&unipi_led4>;
+			gpios = <&gpio2 RK_PA6 GPIO_ACTIVE_LOW>;
+			default-state = "off";
+			// ttyS1-tx
+			linux,default-trigger = "tty";
+		};
+
+		user-led@5 {
+			label = "unipi-sysled-xh";
+			color = <LED_COLOR_ID_GREEN>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&unipi_led5>;
+			gpios = <&gpio2 RK_PC0 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
+	unipi_id: unipi-id {
+		compatible = "unipi,unipi-id";
+		nvmem = <&unipi_mb>;
+		nvmem-names = "plcid0";
+		id-channel = <&i2c1>;
+	};
+
+	/delete-node/ vcc_wifi;
+};
+
+&analog_sound {
+	status = "disabled";
+};
+
+&codec {
+	status = "disabled";
+};
+
+&cpu0_opp_table {
+	/delete-node/ opp-816000000;
+	/delete-node/ opp-1008000000;
+	/delete-node/ opp-1200000000;
+	/delete-node/ opp-1296000000;
+};
+
+&gmac2io {
+/delete-property/ snps,aal;
+/delete-property/ snps,rxpbl;
+phy-mode = "rgmii-rxid";
+};
+
+&gmac2phy {
+	tx_delay = <0x26>;
+	rx_delay = <0x11>;
+};
+
+&gpio2 {
+	enable_uart2_rx {
+		gpio-hog;
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&uart2_enable>;
+		gpios = <RK_PA2 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "enable-uart2-rx";
+	};
+};
+
+&i2c1 {
+	rtc_i2c: rtc@6f {
+		compatible = "microchip,mcp7941x";
+		reg = <0x6f>;
+		/*
+		interrupt-parent = <&gpio2>;
+		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&rtc_int>;
+		*/
+	};
+
+	unipi_mb: neuronee@57 {
+		compatible = "atmel,24c01";
+		reg = <0x57>;
+		vcc-supply = <&vcc_io>;
+	};
+};
+
+&pinctrl {
+	uart1_unipi {
+		uart1_rts_unipi: uart1-rts-unipi {
+			rockchip,pins = <1 RK_PD4 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+	uart2_unipi {
+		uart2_rts_unipi: uart2-rts-unipi {
+			rockchip,pins = <2 RK_PC2 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+	uart2hog_unipi {
+		uart2_enable: uart2-enable {
+			rockchip,pins = <2 RK_PA2 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+
+	unipi_leds {
+		unipi_led1: unipi-led1 {
+			rockchip,pins = <2 RK_PC6 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+		unipi_led2: unipi-led2 {
+			rockchip,pins = <2 RK_PC3 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+		unipi_led3: unipi-led3 {
+			rockchip,pins = <2 RK_PC1 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+		unipi_led4: unipi-led4 {
+			rockchip,pins = <2 RK_PA6 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+		unipi_led5: unipi-led5 {
+			rockchip,pins = <2 RK_PC0 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+	i2c_rtc {
+		rtc_int: rtc-int {
+			rockchip,pins = <2 RK_PC4 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+};
+
+&rtl8211 {
+	leds {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		/* LEDs 0+1 apply for RTL8211E
+		        1+2 apply for RTL8211F
+				we prefer the later one, E has desired mode already
+		led@0 {
+			reg = <0>;
+			color = <LED_COLOR_ID_YELLOW>;
+			function = LED_FUNCTION_LAN;
+			linux,default-trigger = "netdev";
+		};*/
+
+		led@1 {
+			reg = <1>;
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_LAN;
+		};
+
+		led@2 {
+			reg = <2>;
+			color = <LED_COLOR_ID_YELLOW>;
+			function = LED_FUNCTION_LAN;
+		};
+	};
+};
+
+&saradc {
+	status = "disabled";
+};
+
+&tsadc {
+	rockchip,hw-tshut-mode = <1>;
+	rockchip,hw-tshut-polarity = <1>;
+};
+
+&uart1 {
+	/delete-property/ dmas;
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart1_xfer &uart1_rts_unipi>;
+	linux,rs485-enabled-at-boot-time;
+	rts-gpios = <&gpio1 RK_PD4 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+&uart2 {
+	/delete-property/ dmas;
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart2m1_xfer &uart2_rts_unipi>;
+	linux,rs485-enabled-at-boot-time;
+	rts-gpios = <&gpio2 RK_PC2 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&u2phy_otg {
+	status = "disabled";
+};
+
+&usb20_otg {
+	status = "disabled";
+};
+
+&usb_host0_ehci {
+	status = "disabled";
+};
+
+&usb_host0_ohci {
+	status = "disabled";
+};

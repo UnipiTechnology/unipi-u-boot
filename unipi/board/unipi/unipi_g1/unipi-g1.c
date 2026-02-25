@@ -6,10 +6,11 @@
 #include <clk.h>
 #include <dm.h>
 #include <led.h>
+#include <env.h>
 #include <net.h>
 #include <ram.h>
 #include <i2c_eeprom.h>
-#include <asm-generic/gpio.h>
+#include <asm/gpio.h>
 #include <syscon.h>
 #include <asm/io.h>
 #include <asm/arch-rockchip/boot_mode.h>
@@ -29,14 +30,13 @@
 #include <usb.h>
 
 #include "../common/uniee_values.h"
+#include "../common/unipi_system.h"
 
 #define CRU_GLB_CNT_TH     0xff440090
 
 struct unipi_handoff {
 	u32 ddr;
 };
-
-int ft_unipi_board_setup(void *blob, struct bd_info  *bd);
 
 #if (defined(CONFIG_TPL_BOARD_INIT) && defined(CONFIG_TPL_BUILD))
 int rk3328_dmc_get_ddr_mode(struct udevice *dev);
@@ -96,8 +96,8 @@ int rockchip_early_misc_init_r(void)
 
 static int rs485_enable = 0;
 
-#ifndef CONFIG_SPL_BUILD
-void rs485_tx_op(struct udevice *dev, int op)
+#ifndef CONFIG_XPL_BUILD
+void rs485_tx_op_16550(struct udevice *dev, int op)
 {
 	if (!rs485_enable) return;
 
@@ -130,7 +130,7 @@ int rk_board_late_init(void)
 {
 	__maybe_unused struct unipi_handoff *handoff;
 
-#if CONFIG_IS_ENABLED(BLOBLIST) && !defined(CONFIG_SPL_BUILD)
+#if CONFIG_IS_ENABLED(BLOBLIST) && !defined(CONFIG_XPL_BUILD)
 	handoff = bloblist_find(BLOBLISTT_UNIPI_DDR, sizeof(struct unipi_handoff));
 	if ((handoff != NULL) && (handoff->ddr<=1)) {
 		char num[10];
@@ -150,7 +150,7 @@ int rk_board_late_init(void)
 
 int mach_cpu_init(void)
 {
-#ifndef CONFIG_SPL_BUILD
+#ifndef CONFIG_XPL_BUILD
 	/*
 		- watch_dog trigger first global reset
 		- tsadc trigger first global reset

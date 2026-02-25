@@ -13,8 +13,8 @@
  *
  */
 
-#ifndef UNIEE_VALUES_H_
-#define UNIEE_VALUES_H_
+#ifndef __UNIEE_VALUES_H__
+#define __UNIEE_VALUES_H__
 
 /* uniee_bank_3_t.platform_id */
  #define UNIEE_PLATFORM_FAMILY_UNIPI1 0x01

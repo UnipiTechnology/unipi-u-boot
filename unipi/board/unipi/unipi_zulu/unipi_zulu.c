@@ -20,10 +20,9 @@
 #include <usb.h>
 
 #include "../common/uniee_values.h"
+#include "../common/unipi_system.h"
 
 DECLARE_GLOBAL_DATA_PTR;
-
-int ft_unipi_board_setup(void *blob, struct bd_info  *bd);
 
 #if IS_ENABLED(CONFIG_FEC_MXC)
 static int setup_fec(void)

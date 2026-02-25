@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef UNIPI_EPROM_H_
-#define UNIPI_EPROM_H_
+#ifndef __UNIPI_EPROM_H__
+#define __UNIPI_EPROM_H__
 
 #include "uniee.h"
 
@@ -17,4 +17,4 @@ u32 unipi_eeprom_get_serial(uniee_descriptor_area* descriptor);
 u32 unipi_eeprom_get_sku(uniee_descriptor_area* descriptor);
 void unipi_eeprom_get_model(uniee_descriptor_area* descriptor, char* str, int maxlen);
 
-#endif /* UNIPI_EPROM_H_*/
+#endif /* __UNIPI_EPROM_H__*/

@@ -11,6 +11,7 @@
 
 / {
 	chosen {
+		stdout-path = "serial2:115200n8";
 		u-boot,spl-boot-order = "same-as-spl", &sdmmc, &emmc;
 	};
 
@@ -34,31 +35,40 @@
 			};
 		};
 	};
+#if IS_ENABLED(CONFIG_ID_EEPROM)
+	bootcount@0 {
+		compatible = "u-boot,bootcount-rtc";
+		rtc = <&rtc_i2c>;
+		offset = <0x20>;
+	};
+#endif
 };
 
-&gpio0 {
-	u-boot,dm-spl;
-};
-
-&pinctrl {
-	u-boot,dm-spl;
-};
-
-&sdmmc0m1_pin {
-	u-boot,dm-spl;
-};
-
-&pcfg_pull_up_4ma {
-	u-boot,dm-spl;
-};
 
 &usbdrd3 {
-	vbus-supply = <&vcc_host_5v>;
 	status = "okay";
 };
 
 /* Need this and all the pinctrl/gpio stuff above to set pinmux */
 &vcc_sd {
-	u-boot,dm-spl;
+	bootph-pre-ram;
 };
 
+&uart2 {
+	/delete-property/ rts-gpios;
+	pinctrl-0 = <&uart2m1_xfer>;
+	/delete-property/ linux,rs485-enabled-at-boot-time;
+};
+
+&uart1 {
+	/delete-property/ rts-gpios;
+	status = "disabled";
+};
+
+&gmac2io {
+	phy-mode = "rgmii";
+};
+
+&wdt {
+	status = "okay";
+};

@@ -1,39 +1,10 @@
 # Build U-boot for Unipi Zulu
 
-This text describes cross-build of U-boot on amd64 Linux host.
+Prepare building environment as described in [README.md](README.md)
 
-Required packages - package names are valid for Debian 13
- - build-essential
- - git
- - bison
- - flex
- - python3
- - python3-setuptools
- - swig
- - cmake
- - python3-dev
- - libssl-dev
- - libncurses-dev
- - crossbuild-essential-arm64
- - wget
 
-## Prepare building environment
-Load source repo of unipi-u-boot and download all required sources
-```git clone https://git.unipi.technology:unipi/unipi-u-boot.git
-   cd unipi-u-boot
-   ./prepare.sh
-```
-Script prepare.sh downloads sources of u-boot, atf, firmware. During extracting firmware,
-you must to accept license of DDR firmware. After extracting sources patches are applied to
-sources.
+## Configure and compile bootloader binary
 
-If source code development is not expected, call prepare.sh with the _build_ parameter.
-Local git repositories will not be created.
-```
-   ./prepare.sh build
-```
-
-## Compile binary
 Use prepared configuration file for Unipi Zulu.
 ```
   CROSS_COMPILE=aarch64-linux-gnu- ARCH=arm make configure DEFCONFIG=unipi-zulu_defconfig
@@ -53,7 +24,7 @@ Build bootloader image
 ```
   CROSS_COMPILE=aarch64-linux-gnu- ARCH=arm make
 ```
-To speedup build append parameter -j <number of cores>
+To speedup build append parameter -j $(nproc)
 The first step of build process create ATF (ARM Truested Firmware), then U-boot and SPL. All that
 parts and DDR firmware are packed into one image in directory u-boot name **flash.bin**
 
