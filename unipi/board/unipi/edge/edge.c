@@ -26,6 +26,7 @@ void rs485_tx_op(u32 *cr2, u32 *sr2, int op);
 void rs485_bcmtx_op(u32 *cr2, u32 *sr2, int op);
 int board_late_init(void);
 int ft_system_setup(void *blob, struct bd_info  *bd);
+int copy_property(void *dst, void *src, char *path, char *property);
 
 
 int rs485_enable = 0;
@@ -131,5 +132,22 @@ int identify_usb_hub(struct usb_hub_device *hub, int port)
 
 int ft_system_setup(void *blob, struct bd_info  *bd)
 {
-    return ft_unipi_board_setup(blob,bd);
+	if (blob != gd->fdt_blob) {
+		copy_property(blob, (void *)gd->fdt_blob, "/scb/dma@7e007b00", "brcm,dma-channel-mask");
+		copy_property(blob, (void *)gd->fdt_blob, "/reserved-memory/nvram@1", "status");
+		copy_property(blob, (void *)gd->fdt_blob, "/reserved-memory/nvram@1", "reg");
+		int nodeoff = fdt_path_offset(blob, "/chosen");
+		if (nodeoff >= 0) {
+			fdt_find_or_add_subnode(blob, nodeoff, "bootloader");
+			copy_property(blob, (void *)gd->fdt_blob, "/chosen/bootloader", "capabilities");
+			copy_property(blob, (void *)gd->fdt_blob, "/chosen/bootloader", "build-timestamp");
+			copy_property(blob, (void *)gd->fdt_blob, "/chosen/bootloader", "tryboot");
+			copy_property(blob, (void *)gd->fdt_blob, "/chosen/bootloader", "rsts");
+			copy_property(blob, (void *)gd->fdt_blob, "/chosen/bootloader", "update-timestamp");
+			copy_property(blob, (void *)gd->fdt_blob, "/chosen/bootloader", "version");
+			copy_property(blob, (void *)gd->fdt_blob, "/chosen/bootloader", "boot-mode");
+			copy_property(blob, (void *)gd->fdt_blob, "/chosen/bootloader", "partition");
+		}
+	}
+	return ft_unipi_board_setup(blob,bd);
 }
