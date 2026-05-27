@@ -166,6 +166,9 @@ int check_button_status(int button_type)
 	gpio_direction_input(G1_BUTTON);
 	if (gpio_get_value(G1_BUTTON) == 0)
 		return 0;
+	mdelay(100);
+	if (gpio_get_value(G1_BUTTON) == 0)
+		return 0;
 
 	gpio_request(G1_TX_ENABLE, "console tx enable");
 	gpio_request(G1_RX_ENABLE, "console rx enable");
