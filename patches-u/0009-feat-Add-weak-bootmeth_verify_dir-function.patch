@@ -1,0 +1,62 @@
+From b91c041037b1fe435dd1027debd2184d38449226 Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Wed, 17 Jun 2026 19:22:16 +0200
+Subject: [PATCH] feat: Add weak bootmeth_verify_dir function
+
+---
+ boot/bootmeth_script.c | 10 +++++++++-
+ include/bootmeth.h     | 12 ++++++++++++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/boot/bootmeth_script.c b/boot/bootmeth_script.c
+index cd50977c..d01fbc5b 100644
+--- a/boot/bootmeth_script.c
++++ b/boot/bootmeth_script.c
+@@ -23,6 +23,12 @@
+ #define SCRIPT_FNAME1	"boot.scr.uimg"
+ #define SCRIPT_FNAME2	"boot.scr"
+ 
++__weak int bootmeth_verify_dir(struct bootflow *bflow, struct blk_desc *desc,
++			       const char *prefix)
++{
++	return 0;
++}
++
+ static int script_check(struct udevice *dev, struct bootflow_iter *iter)
+ {
+ 	/* This works on block devices, network devices and SPI Flash */
+@@ -85,7 +91,9 @@ static int script_read_bootflow_file(struct udevice *bootstd,
+ 	i = 0;
+ 	do {
+ 		prefix = prefixes ? prefixes[i] : NULL;
+-
++		ret = bootmeth_verify_dir(bflow, desc, prefix);
++		if (ret)
++			continue;
+ 		ret = bootmeth_try_file(bflow, desc, prefix, SCRIPT_FNAME1);
+ 		if (ret)
+ 			ret = bootmeth_try_file(bflow, desc, prefix,
+diff --git a/include/bootmeth.h b/include/bootmeth.h
+index 2a492dfd..4ceebbe0 100644
+--- a/include/bootmeth.h
++++ b/include/bootmeth.h
+@@ -425,4 +425,16 @@ int bootmeth_common_read_file(struct udevice *dev, struct bootflow *bflow,
+  */
+ int bootmeth_get_bootflow(struct udevice *dev, struct bootflow *bflow);
+ 
++/**
++ * bootmeth_verify_dir() - Weak function to verify directory for loading boot files
++ *
++ * Used for specific checking if load boot biles from director is not forbidden
++ *
++ * @bflow: Information about file to try
++ * @desc: Block descriptor to read from (NULL for sandbox host)
++ * @prefix: directory (NULL for none)
++ * Return: 0 if OK, other on forbidden or error
++ */
++int bootmeth_verify_dir(struct bootflow *bflow, struct blk_desc *desc,
++			const char *prefix);
+ #endif
+-- 
+2.39.5
+

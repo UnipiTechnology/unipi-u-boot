@@ -18,6 +18,7 @@
 #include <miiphy.h>
 #include <netdev.h>
 #include <usb.h>
+#include <bootmeth.h>
 
 #include "../common/uniee_values.h"
 #include "../common/unipi_system.h"
@@ -158,9 +159,6 @@ int check_button_status(int button_type)
 
 int board_late_init(void)
 {
-	if (gd->ram_size > SZ_1G) {
-		env_set("boot_a_script", "run boot_c_script");
-	}
 	board_late_mmc_env_init();
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
@@ -198,4 +196,13 @@ int identify_usb_hub(struct usb_hub_device *hub, int port)
 	return 1;
 }
 
+int bootmeth_verify_dir(struct bootflow *bflow, struct blk_desc *desc,
+                        const char *prefix)
+{
+	int ret = 0;
+
+	if (gd->ram_size > SZ_1G)
+		ret = bootmeth_try_file(bflow, desc, prefix, "hwrevision.compatible");
+	return ret;
+}
 #endif   /* XPL_BUILD */

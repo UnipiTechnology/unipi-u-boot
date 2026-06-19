@@ -28,6 +28,7 @@
 #include <bloblist.h>
 #include <rtc.h>
 #include <usb.h>
+#include <bootmeth.h>
 
 #include "../common/uniee_values.h"
 #include "../common/unipi_system.h"
@@ -201,4 +202,18 @@ int identify_usb_hub(struct usb_hub_device *hub, int port)
 	if (hub && (hub->hub_depth == -1) && (port==1))
 		return 1;
 	return 0;
+}
+
+int bootmeth_verify_dir(struct bootflow *bflow, struct blk_desc *desc,
+                        const char *prefix)
+{
+	ulong ddr;
+	int ret;
+
+	ddr = env_get_ulong("unipi_dram_type", 10, 0xffff);
+	if (ddr == 0)
+		return 0;
+
+	ret = bootmeth_try_file(bflow, desc, prefix, "hwrevision.compatible");
+	return ret;
 }

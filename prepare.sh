@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# if you change ATF_TAG, fix it in debian/rules
 ATF_TAG=v2.12.0
 UBOOT_TAG=v2026.01
 
