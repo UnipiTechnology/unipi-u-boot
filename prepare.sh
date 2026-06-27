@@ -3,6 +3,7 @@
 # if you change ATF_TAG, fix it in debian/rules
 ATF_TAG=v2.12.0
 UBOOT_TAG=v2026.01
+UBOOT_TAG_GH=2026.01
 
 DDR_TAG=8.28
 IMX_DDR_ABBREV="994fa14"
@@ -38,9 +39,10 @@ else
 fi
 
 if [ "$1" != "-nu" ]; then
-    wget -q "https://source.denx.de/u-boot/u-boot/-/archive/${UBOOT_TAG}/u-boot-${UBOOT_TAG}.tar.gz" -O- | tar xz
+    #wget -q "https://source.denx.de/u-boot/u-boot/-/archive/${UBOOT_TAG}/u-boot-${UBOOT_TAG}.tar.gz" -O- | tar xz
+    wget -q "https://github.com/u-boot/u-boot/archive/refs/tags/${UBOOT_TAG}.tar.gz" -O- | tar xz
 
-    mv u-boot-${UBOOT_TAG} u-boot
+    mv u-boot-${UBOOT_TAG_GH} u-boot
     (
       cp -r unipi/* u-boot
       cd u-boot
