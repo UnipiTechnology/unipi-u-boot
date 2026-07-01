@@ -181,21 +181,6 @@ int ft_board_setup(void *blob, struct bd_info  *bd)
 	return ft_unipi_board_setup(blob, bd);
 }
 
-int identify_usb_hub(struct usb_hub_device *hub, int port)
-{
-	u32 reg;
-
-	if (!hub || (hub->hub_depth != 0) || (port!=1)) 
-		return 0;
-	if (! dev_has_ofnode(hub->pusb_dev->controller_dev))
-		return 0;
-	if (ofnode_read_u32(dev_ofnode(hub->pusb_dev->controller_dev), "reg", &reg))
-		return 0;
-	if (reg != 0x32e50000)
-		return 0;
-	return 1;
-}
-
 int bootmeth_verify_dir(struct bootflow *bflow, struct blk_desc *desc,
                         const char *prefix)
 {

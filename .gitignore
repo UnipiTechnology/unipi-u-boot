@@ -7,3 +7,4 @@ atf/
 u-boot/
 id
 optee_os/
+arm-trusted-firmware-2.12.0/

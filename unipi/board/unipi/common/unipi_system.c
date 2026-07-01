@@ -13,7 +13,6 @@
 #include <net-common.h>
 #include <rtc.h>
 #include <stdio.h>
-#include <usb.h>
 
 /* This must be defined before loading uniee.h */
 #define htobe16(x) cpu_to_be16(x)
@@ -24,11 +23,9 @@
 #include "unipi_system.h"
 
 int mac_read_from_eeprom(void);
-void usb_hub_reset_devices(struct usb_hub_device *hub, int port);
 
 /* define weak functions - can be redifned in board file */
 __weak int check_button_status(int button_type) {return 0;}
-__weak int identify_usb_hub(struct usb_hub_device *hub, int port) {return 0;}
 
 #if IS_ENABLED(CONFIG_ID_EEPROM)
 
@@ -160,20 +157,3 @@ int ft_unipi_board_setup(void *blob, struct bd_info *bd)
 	return 0;
 }
 #endif
-
-
-/* Add 2.5 s waiting during USB hub scan for particular interface */
-void usb_hub_reset_devices(struct usb_hub_device *hub, int port)
-{
-	const char* env;
-	unsigned int delay = 2500;
-
-	if (identify_usb_hub(hub, port)) {
-		env = env_get("usb_hub1_delay");
-		if (env)
-			delay = simple_strtoul(env, NULL, 0);
-		printf("(Add usb_hub1_delay=%d ms) ", delay);
-		hub->query_delay += delay;
-		hub->connect_timeout += delay;
-	}
-}

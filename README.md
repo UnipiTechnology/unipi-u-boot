@@ -46,7 +46,39 @@ Local git repositories will not be created.
 
 ## Build binary
 
-For further instructions, see the device-specific file.
+### Configure and compile the bootloader
+
+Use the prepared configuration file for your board:
+
+```bash
+CROSS_COMPILE=aarch64-linux-gnu- ARCH=arm make configure DEFCONFIG=<board>_defconfig
+```
+
+where `<board>_defconfig` is one of:
+
+| Board | DEFCONFIG | Debug console | Output artifact(s) |
+|---|---|---|---|
+| Zulu / Patron | `unipi-zulu_defconfig` | UART3 | `u-boot/flash.bin` (ATF + U-Boot + SPL + DDR firmware) |
+| Edge | `unipi-edge_defconfig` | ttyAMA1 | `u-boot/u-boot.bin` |
+| G1 | `unipi-g1_defconfig` | — | `u-boot/u-boot.itb` + `u-boot/idbloader.img` |
+
+The bootloader supports loading bootscripts `boot.scr` or `extlinux` from mmc, usb flash, tftp.
+
+To modify U-Boot building options use `menuconfig`, but be very careful!
+
+```bash
+CROSS_COMPILE=aarch64-linux-gnu- ARCH=arm make menuconfig
+```
+
+Build the bootloader image:
+
+```bash
+CROSS_COMPILE=aarch64-linux-gnu- ARCH=arm make -j $(nproc)
+```
+
+The `-j $(nproc)` parameter speeds up the build by parallelizing it.
+
+For installation instructions, see the device-specific file.
 
  - [Unipi Zulu](README-zulu.md)
  - Unipi Patron

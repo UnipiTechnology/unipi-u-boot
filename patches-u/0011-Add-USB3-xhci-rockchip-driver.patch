@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Unipi Technology <dev@unipi.technology>
+Date: Mon, 30 Jun 2026 00:00:00 +0000
+Subject: [PATCH] usb: host: add Rockchip xHCI glue for RK3328
+
+Wire up the Unipi vendor xhci-rockchip driver (provided as a new source
+file under drivers/usb/host/ by the board overlay). This driver drives the
+DWC3 core directly and configures the UTMI (USB2) PHY by hand, deliberately
+leaving the USB3OTG clocks and the (non-existent on RK3328) SuperSpeed PHY
+untouched. The generic xhci-dwc3 path enables the USB3OTG clocks through the
+clock framework, which interacts badly with the bugged InnoSilicon USB3 PHY
+on RK3328 and makes SuperSpeed thumb-drive enumeration marginal.
+
+The xhci-rockchip driver reuses dwc3_set_mode() exported by xhci-dwc3.c,
+so it depends on USB_XHCI_DWC3 being built. It provides its own core-init
+(rockchip_dwc3_core_init) that soft-resets only the USB2 PHY, never the
+bugged USB3 PIPE PHY, so xhci-dwc3's full dwc3_core_init() is not invoked.
+The driver only binds nodes whose compatible is "rockchip,rk3328-xhci",
+so xhci-dwc3 remains inert when the board DT overrides the dwc3 node's
+compatible.
+
+This patch only adds the Kconfig symbol and the Makefile rule; the driver
+source itself is added by the Unipi board overlay.
+
+Signed-off-by: Unipi Technology <dev@unipi.technology>
+---
+ drivers/usb/host/Kconfig  | 9 +++++++++
+ drivers/usb/host/Makefile | 1 +
+ 2 files changed, 10 insertions(+)
+
+diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+index 1a2b3c4d5e6f..7a8b9c0d1e2f 100644
+--- a/drivers/usb/host/Kconfig
++++ b/drivers/usb/host/Kconfig
+@@ -33,6 +33,15 @@ config USB_XHCI_DWC3
+ 	  Say Y or if your system has a Dual Role SuperSpeed
+ 	  USB controller based on the DesignWare USB3 IP Core.
+ 
++config USB_XHCI_ROCKCHIP
++	bool "Support for Rockchip on-chip xHCI USB controller"
++	depends on ARCH_ROCKCHIP
++	depends on DM_USB
++	help
++	  Enables support for the on-chip xHCI controller on Rockchip SoCs
++	  using a minimal vendor glue that drives the DWC3 core directly.
++	  Used on RK3328 (Unipi G1) to avoid the bugged InnoSilicon USB3 PHY.
++
+ config USB_XHCI_DWC3_OF_SIMPLE
+ 	bool "DesignWare USB3 DRD Generic OF Simple Glue Layer"
+ 	depends on DM_USB
+diff --git a/drivers/usb/host/Makefile b/drivers/usb/host/Makefile
+index 8dad36f9a1b2..c0d1e2f3a4b5 100644
+--- a/drivers/usb/host/Makefile
++++ b/drivers/usb/host/Makefile
+@@ -46,6 +46,7 @@ obj-$(CONFIG_USB_XHCI_BRCM) += xhci-brcm.o
+ obj-$(CONFIG_USB_XHCI_HCD) += xhci.o xhci-mem.o xhci-ring.o
+ obj-$(CONFIG_USB_XHCI_DWC3) += xhci-dwc3.o
+ obj-$(CONFIG_USB_XHCI_DWC3_OF_SIMPLE) += dwc3-of-simple.o
++obj-$(CONFIG_USB_XHCI_ROCKCHIP) += xhci-rockchip.o
+ obj-$(CONFIG_USB_XHCI_EXYNOS) += xhci-exynos5.o
+ obj-$(CONFIG_USB_XHCI_FSL) += xhci-fsl.o
+ obj-$(CONFIG_USB_XHCI_MTK) += xhci-mtk.o
+-- 
+2.45.2

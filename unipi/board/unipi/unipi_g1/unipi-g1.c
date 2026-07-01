@@ -27,7 +27,6 @@
 #include <ns16550.h>
 #include <bloblist.h>
 #include <rtc.h>
-#include <usb.h>
 #include <bootmeth.h>
 
 #include "../common/uniee_values.h"
@@ -194,14 +193,6 @@ int ft_board_setup(void *blob, struct bd_info  *bd)
 	tmpstr[sizeof(tmpstr)-1]= '\0';
 	fdt_setprop(blob, 0, "altboot-hwrevision", tmpstr, strlen(tmpstr));
 	return ft_unipi_board_setup(blob, bd);
-}
-
-int identify_usb_hub(struct usb_hub_device *hub, int port)
-{
-	/* modify delay only for root hub - on G1 there is only one usb controller/root hub */
-	if (hub && (hub->hub_depth == -1) && (port==1))
-		return 1;
-	return 0;
 }
 
 int bootmeth_verify_dir(struct bootflow *bflow, struct blk_desc *desc,

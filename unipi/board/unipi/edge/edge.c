@@ -11,7 +11,6 @@
 #include <asm/io.h>
 #include <asm/gpio.h>
 #include <asm/global_data.h>
-#include <usb.h>
 #include <linux/delay.h>
 
 #include "../common/uniee_values.h"
@@ -111,23 +110,6 @@ int board_late_init(void)
     env_set("board_rev", "EDGE");
 #endif
     return 0;
-}
-
-/* check particular interface in USB hub - can connect usb storage*/
-int identify_usb_hub(struct usb_hub_device *hub, int port)
-{
-	u32 reg;
-
-	if (!hub || (hub->hub_depth != 0) || (port!=1))
-		return 0;
-	if (! dev_has_ofnode(hub->pusb_dev->controller_dev))
-		return 0;
-	if ( ofnode_read_u32(dev_ofnode(hub->pusb_dev->controller_dev), "reg", &reg))
-		return 0;
-	/* if (reg != 0x7e9c0000)
-		return 0; */
-
-	return 1; /* found */
 }
 
 int ft_system_setup(void *blob, struct bd_info  *bd)

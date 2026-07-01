@@ -45,7 +45,21 @@
 };
 
 
+/*
+ * Bind the Rockchip vendor xHCI glue (drivers/usb/host/xhci-rockchip.c)
+ * instead of the generic dwc3 path. The vendor driver configures the UTMI
+ * (USB2) PHY by hand and never enables the USB3OTG clocks, which avoids
+ * disturbing the bugged InnoSilicon SuperSpeed PHY on RK3328. Override the
+ * compatible so xhci-dwc3 (which matches "snps,dwc3") no longer binds here.
+ */
 &usbdrd3 {
+	compatible = "rockchip,rk3328-xhci";
+	dr_mode = "host";
+	snps,phyif-utmi-bits = <16>;
+	snps,dis-enblslpm-quirk;
+	snps,dis-u2-freeclk-exists-quirk;
+	snps,dis-u2-susphy-quirk;
+	vbus-supply = <&vcc_host_5v>;
 	status = "okay";
 };
 

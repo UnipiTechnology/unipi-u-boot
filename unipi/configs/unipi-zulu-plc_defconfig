@@ -174,6 +174,9 @@ CONFIG_USB=y
 CONFIG_USB_EHCI_HCD=y
 CONFIG_USB_STORAGE=y
 CONFIG_USB_ONBOARD_HUB=y
+# Give slow/problematic USB keys enough time to assert connection during hub
+# port scanning (default 1000 ms); widens the detection window to 5 s.
+CONFIG_USB_HUB_DEBOUNCE_TIMEOUT=5000
 CONFIG_IMX_WATCHDOG=y
 CONFIG_WATCHDOG_RESET_DISABLE=y
 CONFIG_FS_EXFAT=y

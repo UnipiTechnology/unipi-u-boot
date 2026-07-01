@@ -1,0 +1,34 @@
+From 3b7f2a01a560228b99676e2513cbe1ccebf93651 Mon Sep 17 00:00:00 2001
+From: Miroslav Ondra <ondra@faster.cz>
+Date: Mon, 29 Jun 2026 16:15:10 +0200
+Subject: [PATCH] bug:g1: Swap mac addresses on eth0 and eth1
+
+---
+ arch/arm/mach-rockchip/board.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-rockchip/board.c b/arch/arm/mach-rockchip/board.c
+index c358fa0a..1643ce59 100644
+--- a/arch/arm/mach-rockchip/board.c
++++ b/arch/arm/mach-rockchip/board.c
+@@ -354,13 +354,13 @@ int rockchip_setup_macaddr(void)
+ 	mac_addr[0] |= 0x02;  /* set local assignment bit (IEEE802) */
+ 
+ 	if (mac_addr[5] >= 255) {
+-		eth_env_set_enetaddr("ethaddr", mac_addr);
+-		mac_addr[5]--;
+ 		eth_env_set_enetaddr("eth1addr", mac_addr);
++		mac_addr[5]--;
++		eth_env_set_enetaddr("ethaddr", mac_addr);
+ 	} else {
+-		eth_env_set_enetaddr("eth1addr", mac_addr);
+-		mac_addr[5]++;
+ 		eth_env_set_enetaddr("ethaddr", mac_addr);
++		mac_addr[5]++;
++		eth_env_set_enetaddr("eth1addr", mac_addr);
+ 	}
+ #endif
+ 	return 0;
+-- 
+2.39.5
+
